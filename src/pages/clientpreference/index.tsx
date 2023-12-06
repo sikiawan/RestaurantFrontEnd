@@ -117,11 +117,6 @@ const ClientPreferences = () => {
                 console.error(error);
             });
     };
-
-
-    useEffect(() => {
-        getData();
-    }, []);
     return (
         <>
             <section className='flex items-center justify-center my-2'>

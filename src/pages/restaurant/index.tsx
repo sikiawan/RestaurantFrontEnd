@@ -30,9 +30,9 @@ const index = () => {
 
     const toggleVisibility = () => setIsVisible(!isVisible);
 
-    useEffect(() => {
-        getData();
-    }, []);
+    // useEffect(() => {
+    //     getData();
+    // }, []);
 
 
     const clear = () => {
@@ -47,8 +47,10 @@ const index = () => {
         setSearch('');
     };
     const getData = (page = 1, pageSize = 5, search = '') => {
+        console.log('api called out')
         axios.get(`https://localhost:7160/api/Restaurant?page=${page}&pageSize=${pageSize}&search=${search}`)
             .then((response) => {
+                console.log('api called')
                 setData(response.data.restaurants);
                 console.log(data);
                 setPages(response.data.totalPages);

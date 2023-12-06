@@ -1,216 +1,327 @@
-import { NextPage } from "next";
-import { signOut, useSession } from "next-auth/react";
-import Router from "next/router";
-import React, { useState, useEffect, Fragment } from 'react'
-import axios from 'axios';
-import { signIn } from "next-auth/react";
+import type { NextPage } from "next";
+import styles from "../styles/Home.module.css";
+import UserTable from "@/components/tables/UserTable";
+import axios from "axios";
+import { FormEventHandler, useEffect, useState } from "react";
+import { Roles, Tenants, UsersHome } from "./columns";
+import toast from 'react-hot-toast';
+import { stat } from "fs";
+import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Select, SelectItem, useDisclosure } from "@nextui-org/react";
+import { useRouter } from "next/router";
 import Jwt from 'jsonwebtoken';
-import { useRouter } from 'next/router';
-import { debug } from "console";
-
-const Index: NextPage = (): JSX.Element => {
-    const router = useRouter();
-    const { status, data } = useSession();
-    const [selectedTenant, setSelectedTenant] = useState<string | null>(null);
-    const [tableData, setTableData] = useState<any[]>([]);
-    const [tenantData, setTenantData] = useState<any[]>([]);
-
-    useEffect(() => {
-        console.log(data?.user?.image)
-        if (status === "unauthenticated") Router.replace("/auth/signin");
-    }, [status]);
+import { signIn } from "next-auth/react";
 
 
-    useEffect(() => {
-        getData('0');
-        getTenantData();
-    }, []);
+const Home: NextPage = () => {
+  const router = useRouter();
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [data, setData] = useState<UsersHome[]>([]);
+  const [tenants, setTenants] = useState<Tenants[]>([]);
+  const [roles, setRoles] = useState<Roles[]>([]);
+  const [pages, setPages] = useState(0);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [tenant, setTenant] = useState(0);
+  const [search, setSearch] = useState('');
+  const [statusList, setStatusList] = useState<string[]>(['true', 'false'])
+  const [id, setId] = useState('');
+  const [userName, setUserName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [role, setRole] = useState('');
+  const [tenantId, setTenantId] = useState('');
 
-    const getData = (id: string) => {
-        debugger;
-        axios.get(`https://localhost:7160/api/User?tenantId=${id}`)
-            .then((response) => {
-                console.log(response.data);
-                setTableData(response.data.message);
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    };
-    const getTenantData = () => {
-        axios.get("https://localhost:7160/api/Restaurant")
-            .then((response) => {
-                setTenantData(response.data);
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    };
-    const handleDelete = async (id: string) => {
-        if (window.confirm('Are you sure to Loing from this user !') === true) {
-            try {
-                debugger;
-                const fetchResponse = await fetch(`https://localhost:7160/api/Auth/AuthenticateById?id=${id}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                });
+  const [errorEmail, setErrorEmail] = useState('');
+  const [errorPassword, setErrorPassword] = useState('');
+  const [errorRole, setErrorRole] = useState('');
+  const [errorUserName, setErrorUserName] = useState('');
+  const [errorTenant, setErrorTenant] = useState('');
 
-                if (!fetchResponse.ok) {
-                    throw new Error(`Request failed with status: ${fetchResponse.status}`);
-                }
+  const getData = (tenant = 0, page = 1, pageSize = 5, search = '', statusFilter = ['true', 'false']) => {
+    console.log('api called out');
+    const url = 'https://localhost:7160/api/User';
+    const data = {
+      tenant: tenant,
+      page: page,
+      pageSize: pageSize,
+      search: search,
+      statusFilter: statusFilter,
+    }
+    axios.post(url, data)
+      .then((response) => {
+        console.log('api called');
+        setData(response.data.message.users);
+        setPages(response.data.message.totalPages);
+        setTotalRecords(response.data.message.totalRecords);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+  const getTenants = () => {
+    axios.get("https://localhost:7160/api/Restaurant/GetAll")
+      .then((response) => {
+        setTenants(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+  const getRoles = () => {
+    axios.get("https://localhost:7160/api/Roles")
+      .then((response) => {
+        setRoles(response.data.message);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+  useEffect(() => {
+    getTenants();
+    getRoles();
+  }, []);
+  const clear = () => {
+    setUserName('');
+    setEmail('');
+    setPassword('');
+    setPhoneNumber('');
+    setRole('');
+    setTenantId('');
+    setPage(1)
+    setRowsPerPage(5);
+    setSearch('');
+};
+  const handleAdd = (tenant: number, page: number, rowsPerPage: number, search: string, statusFilter: string[]) => {
+    debugger;
+    onOpen();
+    setPage(page);
+    setRowsPerPage(rowsPerPage);
+    setSearch(search);
+  };
 
-                const resp = await fetchResponse.json();
+  const handleSubmit = async (onClose: () => void) => {
+    //e.preventDefault();
 
-                const json = Jwt.decode(resp.message) as { [key: string]: string };
-                signIn("credentials", {
-                    email: json['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'],
-                    name: json['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
-                    role: json['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
-                    redirect: false,
-                }).then(() => {
-                    router.push('/');
-                });
-            } catch (error) {
-                console.error('Fetch error:');
-            }
-        }
-    };
-
-    const [currentPage, setCurrentPage] = useState<number>(1);
-    const recordsPerPage: number = 5;
-    const lastIndex: number = currentPage * recordsPerPage;
-    const firstIndex: number = lastIndex - recordsPerPage;
-    const records: any[] = tableData.slice(firstIndex, lastIndex); // Change any to the actual type
-    const npage: number = Math.ceil(tableData.length / recordsPerPage);
-    const numbers: number[] = Array.from({ length: npage }, (_, index) => index + 1);
-
-    function nextPage() {
-        if (currentPage !== npage) {
-            setCurrentPage(currentPage + 1);
-        }
+    let obj = {
+      userName,
+        email,
+        password,
+        phoneNumber,
+        role,
+        tenantId,
     }
 
-    function prePage() {
-        if (currentPage !== 1) {
-            setCurrentPage(currentPage - 1);
-        }
+    try {
+      const fetchResponse = await fetch("https://localhost:7160/api/Auth/Register", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(obj)
+      });
+      const resp = await fetchResponse.json();
+      console.log(resp);
+      if (!fetchResponse.ok) {
+        // debugger;
+        // if(resp.errors){
+        //   setEmailError(resp.errors.Email)
+        //   setPasswordError(resp.errors.Password)
+        // }
+        // else{
+        //   setEmailError('');
+        //   setPasswordError('');
+        // }
+        // setError(resp.message)
+        // throw new Error(`Request failed with status: ${fetchResponse.status}`);
+      }
+      
+    } catch (error) {
+      console.error('Fetch error:', error);
     }
+  };
 
-    function changeCPage(pnum: number) {
-        setCurrentPage(pnum);
-    }
-    if (data?.user?.image === "SuperAdmin") {
-        return (
-            <div className='mx-20'>
-                <main className='flex items-center justify-center'>
-                    <h1 className='text-3xl font-bold'>Users</h1>
-                </main>
-                <div className="container mx-auto my-4">
-                    <div className="flex space-x-4">
-                        <button className="bg-blue-500 text-white p-2 rounded" >
-                            Add Record
-                        </button>
-                        <select
-                            className="border p-2 rounded"
-                            //value={selectedTenant}
-                            onChange={(e) => getData(e.target.value)}
-                        >
-                            <option value="">All Tenants</option>
-                            {tenantData.map((tenant) => (
-                                <option key={tenant.id.toString()} value={tenant.id.toString()}>
-                                    {tenant.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-                <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-                    <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                        <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                            <tr>
-                                <th scope="col" className="px-6 py-3">
-                                    Name
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                    Email
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                    IsActive
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                    Action
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {records && records.length > 0 ? (
-                                records.map((item, index) => (
-                                    <tr className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700" key={item.id}>
-                                        <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{item.userName}</th>
-                                        <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{item.email}</th>
-                                        <td className="px-6 py-4">{item.isActive.toString()}</td>
-                                        <td colSpan={2}>
-                                            <button
-                                                className="text-blue-700 hover:text-white border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800"
-
-                                            >
-                                                Edit
-                                            </button>{' '}
-                                            &nbsp;
-                                            <button
-                                                className="text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900"
-
-                                            >
-                                                Delete
-                                            </button>
-                                            &nbsp;
-                                            <button
-                                                className="text-yellow-400 hover:text-white border border-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-yellow-300 dark:text-yellow-300 dark:hover:text-white dark:hover:bg-yellow-400 dark:focus:ring-yellow-900"
-                                                onClick={() => handleDelete(item.id)}
-                                            >
-                                                Login
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={5}>Data not found</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-                <div className="flex justify-center my-4">
-                    <ul className="flex space-x-2">
-                        <li>
-                            <a href="#" className="border p-2 rounded" onClick={prePage}>
-                                Prev
-                            </a>
-                        </li>
-                        {
-                            numbers.map((n, i) => (
-                                <li className={`page-item ${currentPage === n ? 'active' : ''}`} key={i}>
-                                    <a href='#' className="border p-2 rounded" onClick={() => changeCPage(n)}>
-                                        {n}
-                                    </a>
-                                </li>
-                            ))
-                        }
-                        <li>
-                            <a href='#' className="border p-2 rounded"
-                                onClick={nextPage}>Next</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        )
+  const handleSave = (onClose: () => void) => {
+    const url = 'https://localhost:7160/api/Auth/Register';
+    let data = {};
+    if (id === '') {
+      data = {
+        userName,
+        email,
+        password,
+        phoneNumber,
+        role,
+        tenantId,
+      }
     }
     else {
-        return (
-            <div>Only Super Admin can View this page</div>
-        )
+      data = {
+        id: parseInt(id, 10),
+        userName,
+        email,
+        password,
+        phoneNumber,
+        role,
+        tenantId,
+      }
     }
-}
 
-export default Index
+    const resp = axios.post(url, data)
+      .then((result) => {
+        getData(tenant,page, rowsPerPage, search, statusList);
+        clear();
+        onClose();
+        toast.success('Record has been saved.');
+
+      })
+      .catch((error) => {
+        if(error.response.data.errors){
+          setErrorUserName(error.response.data.errors.Username);
+          setErrorEmail(error.response.data.errors.Email);
+          setErrorPassword(error.response.data.errors.Password);
+          setErrorRole(error.response.data.errors.Role);
+          setErrorTenant(error.response.data.errors.TenantId);
+        }
+        //console.error(error)
+      });
+      
+  };
+  const onTenantChange = ((id:number) => {
+    console.log(id);
+    if(isNaN(id)){
+      setTenantId('');
+    }
+    else{
+      setTenantId(id.toString())
+    }
+  });
+  const handleLogin = async (id: string) => {
+    if (window.confirm('Are you sure to Loing from this user !') === true) {
+      try {
+          debugger;
+          const fetchResponse = await fetch(`https://localhost:7160/api/Auth/AuthenticateById?id=${id}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+          });
+
+          if (!fetchResponse.ok) {
+              throw new Error(`Request failed with status: ${fetchResponse.status}`);
+          }
+
+          const resp = await fetchResponse.json();
+
+          const json = Jwt.decode(resp.message) as { [key: string]: string };
+          signIn("credentials", {
+              email: json['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'],
+              name: json['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
+              role: json['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
+              redirect: false,
+          }).then(() => {
+              router.push('/');
+          });
+      } catch (error) {
+          console.error('Fetch error:');
+      }
+  }
+  };
+  return (
+    <section className='flex items-center justify-center my-2'>
+      <div className='container'>
+        <UserTable
+          usersData={data}
+          tenants={tenants}
+          pages={pages}
+          totalRecords={totalRecords}
+          //handleEdit={handleEdit} 
+          //handleDelete={handleDelete} 
+          handleLogin={handleLogin}
+          handleAdd={handleAdd}
+          getDataWithParams={getData}
+        />
+        <Modal
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          scrollBehavior='inside'
+        >
+          <ModalContent>
+            {(onClose) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1">Add or Update</ModalHeader>
+                <ModalBody>
+                  <Input
+                    autoFocus
+                    //   endContent={
+                    //     <MailIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+                    //   }
+                    label="User Name"
+                    placeholder="Enter user name"
+                    variant="bordered"
+                    value={userName}
+                    errorMessage={errorUserName}
+                    onChange={(e) => setUserName(e.target.value)}
+                  />
+                  <Input
+                    label="Email"
+                    placeholder="Enter a valid email"
+                    variant="bordered"
+                    value={email}
+                    errorMessage={errorEmail}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  <Input
+                    label="Password"
+                    placeholder="Enter password"
+                    variant="bordered"
+                    value={password}
+                    errorMessage={errorPassword}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <Input
+                    label="Phone No"
+                    placeholder="Enter phone number"
+                    variant="bordered"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                  />
+                  <Select
+                    label="Select role"
+                    onChange={(e) => setRole(e.target.value)}
+                    value={tenantId}
+                    errorMessage={errorRole}
+                  >
+                    {roles.map((role) => (
+                      <SelectItem key={role.name} value={role.name}>
+                        {role.name}
+                      </SelectItem>
+                    ))}
+                  </Select>
+                  <Select
+                    label="Select tenant"
+                    onChange={(e) => onTenantChange(parseInt(e.target.value))}
+                    value={tenantId}
+                    errorMessage={errorTenant}
+                  >
+                    {tenants.map((tenant) => (
+                      <SelectItem key={tenant.id} value={tenant.id}>
+                        {tenant.name}
+                      </SelectItem>
+                    ))}
+                  </Select>
+                </ModalBody>
+                <ModalFooter>
+                  <Button color="danger" variant="flat" onPress={onClose}>
+                    Close
+                  </Button>
+                  <Button color="primary" onPress={() => handleSave(onClose)}>
+                    Save
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
+      </div>
+    </section>
+  );
+};
+
+export default Home;

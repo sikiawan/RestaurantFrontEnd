@@ -1,7 +1,7 @@
 import React from "react";
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button, NavbarMenuToggle, NavbarMenu, NavbarMenuItem, DropdownItem, Dropdown, DropdownTrigger, DropdownMenu, Avatar } from "@nextui-org/react";
 import { AcmeLogo } from "./AcmeLogo";
-import { ChevronDown, Scale, Lock, Activity, Flash, Server, TagUser } from "../icons/icons";
+import { ChevronDown, Scale, LockIcon, Activity, Flash, Server, TagUser } from "../icons/icons";
 import UnstyledLink from "../links/UnstyledLink";
 import { useTheme } from "next-themes";
 import MoonIcon from "../icons/MoonIcon";
@@ -16,7 +16,7 @@ export default function App() {
   const icons = {
     chevron: <ChevronDown fill="currentColor" size={16} />,
     scale: <Scale className="text-warning" fill="currentColor" size={30} />,
-    lock: <Lock className="text-success" fill="currentColor" size={30} />,
+    lock: <LockIcon className="text-success" fill="currentColor" size={30} />,
     activity: <Activity className="text-secondary" fill="currentColor" size={30} />,
     flash: <Flash className="text-primary" fill="currentColor" size={30} />,
     server: <Server className="text-success" fill="currentColor" size={30} />,
@@ -42,6 +42,10 @@ export default function App() {
         {
           name: "Client Preference",
           href: "/clientpreference",
+        },
+        {
+          name: "Users",
+          href: "/users",
         },
       ],
     },

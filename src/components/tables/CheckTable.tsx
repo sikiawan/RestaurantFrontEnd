@@ -23,7 +23,7 @@ import {
 import { PlusIcon, VerticalDotsIcon, ChevronDownIcon, SearchIcon, EditIcon, DeleteIcon, EyeIcon } from "../icons/icons";
 
 import {capitalize} from "@/utils/utils";
-import { columns, UsersHome, statusOptions, renderCell } from "@/pages/columns";
+import { columns, UsersHome, statusOptions, renderCell } from "@/pages/users/columns";
 
 const INITIAL_VISIBLE_COLUMNS = ["userName", "email","tenantId", "isActive", "actions"];
 

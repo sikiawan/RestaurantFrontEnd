@@ -1,4 +1,4 @@
-import { DeleteIcon, EditIcon, EyeIcon } from "@/components/icons/icons"
+import { DeleteIcon, EditIcon, EyeIcon, UserIcon } from "@/components/icons/icons"
 import { Chip, ChipProps, Tooltip, User } from "@nextui-org/react"
 import React, { useCallback } from 'react';
 
@@ -8,6 +8,14 @@ export type UsersHome = {
   email: string
   isActive: string
   tenantId : string
+}
+export type Tenants = {
+  id: string
+  name: string
+}
+export type Roles = {
+  id: string
+  name: string
 }
  export const columns = [
   {name: "NAME", uid: "userName", sortable: true},
@@ -23,7 +31,7 @@ const statusColorMap: Record<string, ChipProps["color"]> = {
   true: "success",
   false: "danger",
 };
-export const renderCell = (user: UsersHome, columnKey: React.Key) => {
+export const renderCell = (user: UsersHome, columnKey: React.Key, onLogin: (id: string) => void,) => {
   const cellValue = user[columnKey as keyof UsersHome];
 
   switch (columnKey) {
@@ -63,9 +71,9 @@ export const renderCell = (user: UsersHome, columnKey: React.Key) => {
                       <DeleteIcon />
                     </span>
                   </Tooltip>
-                  <Tooltip content='Details'>
-                    <span className='cursor-pointer text-lg text-default-400 active:opacity-50'>
-                      <EyeIcon />
+                  <Tooltip content='Login'>
+                    <span className='cursor-pointer text-lg text-default-400 active:opacity-50' onClick={() => onLogin(user.id)}>
+                      <UserIcon />
                     </span>
                   </Tooltip>
                 </div>
