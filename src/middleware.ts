@@ -18,4 +18,9 @@ export default withAuth(
   }
 );
 
-export const config = { matcher: ["/", "/dashboard", "/admindashboard","/login"] };
+//export const config = { matcher: () => true };
+// export const config = {
+//   matcher: ["/admin/:path*", "/user/:path*"],
+// };
+
+export const config = { matcher: ["/", "/dashboard", "/users", "/restaurant","/clientpreference"] };

@@ -20,6 +20,14 @@ const ClientPreferences = () => {
     const [page, setPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [search, setSearch] = useState('');
+    const [image, setImage] = useState<File | null>(null);
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setImage(file);
+        }
+    };
 
     const handleEdit = (id: string, page:number, rowsPerPage:number, search:string) => {
         onOpen();
@@ -69,6 +77,7 @@ const ClientPreferences = () => {
         setPage(1);
         setRowsPerPage(5);
         setSearch('');
+        setImage(null);
     };
     const getData = (page = 1, pageSize = 5, search = '') => {
         axios.get(`https://localhost:7160/api/ClientPreference?page=${page}&pageSize=${pageSize}&search=${search}`)
@@ -86,6 +95,25 @@ const ClientPreferences = () => {
     const handleSave = (onClose: () => void) => {
         debugger;
         const url = 'https://localhost:7160/api/ClientPreference';
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('tenantId', tenantId);
+        formData.append('address', address);
+        formData.append('cellNo', cellNo);
+
+        if (image) {
+            formData.append('image', image);
+        }
+
+        let config = {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        };
+
+
+
+
         let data = {};
         if (id === '') {
             data = {
@@ -93,6 +121,7 @@ const ClientPreferences = () => {
                 tenantId: tenantId,
                 address: address,
                 cellNo: cellNo,
+                image : image,
             }
         }
         else {
@@ -105,7 +134,7 @@ const ClientPreferences = () => {
             }
         }
 
-        axios.post(url, data)
+        axios.post(url, data, config)
             .then((result) => {
                 getData(page, rowsPerPage, search);
                 clear();
@@ -175,7 +204,10 @@ const ClientPreferences = () => {
                                             value={cellNo}
                                             onChange={(e) => setCellno(e.target.value)}
                                         />
-
+                                        <label>
+                                            Upload Image:
+                                            <input type="file" accept="image/*" onChange={handleImageChange} />
+                                        </label>
                                     </ModalBody>
                                     <ModalFooter>
                                         <Button color="danger" variant="flat" onPress={onClose}>

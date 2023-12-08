@@ -101,45 +101,6 @@ const Home: NextPage = () => {
     setSearch(search);
   };
 
-  const handleSubmit = async (onClose: () => void) => {
-    //e.preventDefault();
-
-    let obj = {
-      userName,
-        email,
-        password,
-        phoneNumber,
-        role,
-        tenantId,
-    }
-
-    try {
-      const fetchResponse = await fetch("https://localhost:7160/api/Auth/Register", {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(obj)
-      });
-      const resp = await fetchResponse.json();
-      console.log(resp);
-      if (!fetchResponse.ok) {
-        // debugger;
-        // if(resp.errors){
-        //   setEmailError(resp.errors.Email)
-        //   setPasswordError(resp.errors.Password)
-        // }
-        // else{
-        //   setEmailError('');
-        //   setPasswordError('');
-        // }
-        // setError(resp.message)
-        // throw new Error(`Request failed with status: ${fetchResponse.status}`);
-      }
-      
-    } catch (error) {
-      console.error('Fetch error:', error);
-    }
-  };
-
   const handleSave = (onClose: () => void) => {
     const url = 'https://localhost:7160/api/Auth/Register';
     let data = {};
@@ -214,6 +175,7 @@ const Home: NextPage = () => {
               email: json['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'],
               name: json['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
               role: json['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
+              permission: json['permission'],
               redirect: false,
           }).then(() => {
               router.push('/');

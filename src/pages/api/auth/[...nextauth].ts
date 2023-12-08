@@ -1,3 +1,4 @@
+import { User } from "@/types/intefaces";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
@@ -9,13 +10,16 @@ const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       
-      type: "credentials",
+      //type: "credentials",
+      name: "Credentials",
+
       credentials: {},
-      authorize(credentials, req) {
-        const { email, name, role } = credentials as {
+      async authorize(credentials, req) {
+        const { email, name, role, permission } = credentials as {
           email: string;
           name: string;
           role : string;
+          permission: string;
         };
         // perform you login logic
         // find out user from db
@@ -26,8 +30,9 @@ const authOptions: NextAuthOptions = {
         return {
           id: "1234",
           name: name,
-          email: email,
-          image: role,
+          userEmail: email,
+          role: role,
+          permissions: permission,
         };
       },
     }),
@@ -37,15 +42,26 @@ const authOptions: NextAuthOptions = {
     // error: '/auth/error',
     // signOut: '/auth/signout'
   },
+  // callbacks: {
+  //   jwt(params) {
+  //     // update token
+  //     // if (params.user?.role) {
+  //     //   params.token.role = params.user.role;
+  //     // }
+  //     // return final_token
+  //     debugger;
+  //     return params.token;
+  //   },
+  // },
   callbacks: {
-    jwt(params) {
-      // update token
-      // if (params.user?.role) {
-      //   params.token.role = params.user.role;
-      // }
-      // return final_token
-      debugger;
-      return params.token;
+    async jwt({ token, user }) {
+      return { ...token, ...user };
+    },
+    async session({ session, token, user }) {
+      // Send properties to the client, like an access_token from a provider.
+      session.user = token;
+
+      return session;
     },
   },
 };

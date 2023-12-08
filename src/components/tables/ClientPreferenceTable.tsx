@@ -25,7 +25,8 @@ import { PlusIcon, VerticalDotsIcon, ChevronDownIcon, SearchIcon, EditIcon, Dele
 
 import { capitalize } from "@/utils/utils";
 import { ClientPreference, columns, renderCell } from '@/pages/clientpreference/columns'
-import { debug } from "console";
+import { useSession } from 'next-auth/react'
+
 const INITIAL_VISIBLE_COLUMNS = ["name", "address", "tenantId", "cellNo", "actions"];
 export default function ClientPreferenceTable({
   clientPreference,
@@ -44,6 +45,7 @@ export default function ClientPreferenceTable({
   handleAdd: (page:number, rowsPerPage:number, search:string) => void;
   getDataWithParams: (page: number, pageSize: number, search: string) => void;
 }) {
+  const { data: session } = useSession()
   const [filterValue, setFilterValue] = React.useState("");
   const [visibleColumns, setVisibleColumns] = React.useState<Selection>(
     new Set(INITIAL_VISIBLE_COLUMNS)
@@ -54,6 +56,20 @@ export default function ClientPreferenceTable({
     direction: "ascending",
   });
   const [page, setPage] = React.useState(1);
+  const[canEdit, setCanEdit] = React.useState(false);
+  const[canDelete, setCanDelete] = React.useState(false);
+
+  const setEditDeletePermission = () =>{
+    const permissionsString = session?.user.permissions;
+  
+    if (permissionsString) {
+      const permissionsArray = permissionsString.split(',');
+      setCanEdit(permissionsArray.includes('Permissions.CP.Edit'));
+      setCanDelete(permissionsArray.includes('Permissions.CP.Delete'))
+    }
+  }
+  
+
   const headerColumns = React.useMemo(() => {
     if (visibleColumns === "all") return columns;
     return columns.filter((column) => Array.from(visibleColumns).includes(column.uid));
@@ -61,6 +77,7 @@ export default function ClientPreferenceTable({
 
   React.useEffect(() => {
     getDataWithParams(page, rowsPerPage, filterValue);
+    setEditDeletePermission();
   }, [page, rowsPerPage, filterValue]);
 
   const sortedItems = React.useMemo(() => {
@@ -217,7 +234,7 @@ export default function ClientPreferenceTable({
         {(clientPreference) => (
           <TableRow key={clientPreference.id}>
             {(columnKey) => (
-              <TableCell>{renderCell(clientPreference, columnKey, onEdit, onDelete)}</TableCell>
+              <TableCell>{renderCell(clientPreference, columnKey, onEdit, onDelete, canEdit, canDelete)}</TableCell>
             )}
           </TableRow>
         )}

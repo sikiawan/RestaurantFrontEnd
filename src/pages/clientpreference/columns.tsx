@@ -17,25 +17,29 @@ export const columns = [
   {name: "ACTIONS", uid: "actions"},
 ];
 
-export const renderCell = (user: ClientPreference, columnKey: React.Key, onEdit: (id: string) => void, onDelete: (id: string) => void) => {
-  const cellValue = user[columnKey as keyof ClientPreference]
-
+export const renderCell = (user: ClientPreference, columnKey: React.Key, onEdit: (id: string) => void, onDelete: (id: string) => void, canEdit:boolean, canDelete: boolean) => {
+  const cellValue = user[columnKey as keyof ClientPreference]  
+  
   switch (columnKey) {
     case 'fordate':
       return <span>{new Date(cellValue).toLocaleDateString()}</span>
     case 'actions':
       return (
         <div className='relative flex items-center gap-4'>
-          <Tooltip content='Edit user'>
+          {canEdit &&(
+            <Tooltip content='Edit user'>
             <span className='cursor-pointer text-lg text-default-400 active:opacity-50' onClick={() => onEdit(user.id)}>
               <EditIcon />
             </span>
           </Tooltip>
-          <Tooltip color='danger' content='Delete user'>
+          )}
+          {canDelete &&(
+            <Tooltip color='danger' content='Delete user'>
             <span className='cursor-pointer text-lg text-danger active:opacity-50' onClick={() => onDelete(user.id)}>
               <DeleteIcon />
             </span>
           </Tooltip>
+          )}
         </div>
       )
     default:
