@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Image, Button, NavbarMenuToggle, NavbarMenu, NavbarMenuItem, DropdownItem, Dropdown, DropdownTrigger, DropdownMenu, Avatar } from "@nextui-org/react";
+import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Image, Button, NavbarMenuToggle, NavbarMenu, NavbarMenuItem, DropdownItem, Dropdown, DropdownTrigger, DropdownMenu, Avatar, Select, SelectItem } from "@nextui-org/react";
 import { AcmeLogo } from "./AcmeLogo";
 import { ChevronDown, Scale, LockIcon, Activity, Flash, Server, TagUser } from "../icons/icons";
 import UnstyledLink from "../links/UnstyledLink";
@@ -10,9 +10,12 @@ import { useSession, signIn, signOut } from "next-auth/react"
 import axios from "axios";
 import toast from "react-hot-toast";
 import { debug } from "console";
+import { LangDropDown } from "@/constants/constants";
+import { useRouter } from "next/router";
 //import { debug } from "console";
 
 export default function App() {
+  const route = useRouter();
   const { resolvedTheme, theme, setTheme } = useTheme();
   const { data: session } = useSession()
   const { status } = useSession();
@@ -54,6 +57,7 @@ export default function App() {
   interface MenuItem {
     id: number;
     name: string;
+    arabicName: string;
     href: string;
     permission?: string;
     parentId?: number;
@@ -193,7 +197,17 @@ export default function App() {
                           radius="sm"
                           variant="light"
                         >
-                          {item.name}
+                          {(() => {
+                            switch (route.locale) {
+                              case 'en':
+                                return item.name;
+                              case 'ar':
+                                return item.arabicName;
+                              // Add more cases for other locales as needed
+                              default:
+                                return item.name; // Fallback to the default
+                            }
+                          })()}
                         </Button>
                       </DropdownTrigger>
                     </NavbarItem>
@@ -211,7 +225,17 @@ export default function App() {
                             openNewTab={false}
                             className={'font-primary w-full flex-1 text-[16px] font-semibold'}
                           >
-                            {subItem.name}
+                            {(() => {
+                            switch (route.locale) {
+                              case 'en':
+                                return subItem.name;
+                              case 'ar':
+                                return subItem.arabicName;
+                              // Add more cases for other locales as needed
+                              default:
+                                return subItem.name; // Fallback to the default
+                            }
+                          })()}
                           </UnstyledLink>
                         </DropdownItem>
                       ))}
@@ -241,6 +265,17 @@ export default function App() {
               {theme === "light" ? <MoonIcon /> : <SunIcon />}
             </button>
             <div>
+              <select value={route.locale} onChange={(e) => {
+              route.push('', undefined, {
+              locale: e.target.value
+              })
+               }}>
+                {LangDropDown.map((op) => (
+                  <option value={op.value} key={op.id}>
+                    {op.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </NavbarContent>
           {session && (
@@ -330,3 +365,5 @@ export default function App() {
     </>
   );
 }
+
+

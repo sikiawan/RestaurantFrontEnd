@@ -6,6 +6,7 @@ import { SessionProvider } from "next-auth/react";
 import {NextUIProvider} from "@nextui-org/react";
 import { Toaster, toast } from 'react-hot-toast';
 import NavBar from '@/components/header/NavBar';
+import { appWithTranslation } from 'next-i18next'
 
 function App({ Component, pageProps }: AppProps) {
   
@@ -24,4 +25,4 @@ function App({ Component, pageProps }: AppProps) {
   );
 }
 
-export default  App;
+export default appWithTranslation(App)
