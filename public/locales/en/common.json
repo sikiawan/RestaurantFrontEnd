@@ -1,0 +1,12 @@
+{
+    "addNew" : "Add New",
+    "edit" : "Edit",
+    "delete":"Delete",
+    "search": "Search",
+    "columns":"Columns",
+    "first": "First",
+    "last": "Last",
+    "total":"Total",
+    "records":"Rocords",
+    "recordsPerPage": "Records per page."
+}

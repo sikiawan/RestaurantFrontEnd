@@ -15,11 +15,13 @@ const authOptions: NextAuthOptions = {
 
       credentials: {},
       async authorize(credentials, req) {
-        const { email, name, role, permission } = credentials as {
+        const { email, name, role, permission, id, saId } = credentials as {
           email: string;
           name: string;
           role : string;
           permission: string;
+          id : string;
+          saId : string;
         };
         // perform you login logic
         // find out user from db
@@ -28,7 +30,8 @@ const authOptions: NextAuthOptions = {
         }
         // if everything is fine
         return {
-          id: "1234",
+          id: id,
+          saId: saId,
           name: name,
           userEmail: email,
           role: role,

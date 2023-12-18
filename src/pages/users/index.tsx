@@ -3,13 +3,14 @@ import styles from "../styles/Home.module.css";
 import UserTable from "@/components/tables/UserTable";
 import axios from "axios";
 import { FormEventHandler, useEffect, useState } from "react";
-import { Roles, Tenants, UsersHome } from "./columns";
+import {UsersHome } from "./columns";
 import toast from 'react-hot-toast';
 import { stat } from "fs";
 import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Select, SelectItem, useDisclosure } from "@nextui-org/react";
 import { useRouter } from "next/router";
 import Jwt from 'jsonwebtoken';
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { Roles, Tenants } from "@/types/types";
 
 
 const Home: NextPage = () => {
@@ -38,6 +39,7 @@ const Home: NextPage = () => {
   const [errorRole, setErrorRole] = useState('');
   const [errorUserName, setErrorUserName] = useState('');
   const [errorTenant, setErrorTenant] = useState('');
+  const { data: session } = useSession()
 
   const getData = (tenant = 0, page = 1, pageSize = 5, search = '', statusFilter = ['true', 'false']) => {
     console.log('api called out');
@@ -147,7 +149,6 @@ const Home: NextPage = () => {
       
   };
   const onTenantChange = ((id:number) => {
-    console.log(id);
     if(isNaN(id)){
       setTenantId('');
     }
@@ -159,7 +160,7 @@ const Home: NextPage = () => {
     if (window.confirm('Are you sure to Loing from this user !') === true) {
       try {
           debugger;
-          const fetchResponse = await fetch(`https://localhost:7160/api/Auth/AuthenticateById?id=${id}`, {
+          const fetchResponse = await fetch(`https://localhost:7160/api/Auth/AuthenticateById?id=${id}&saId=${session?.user.id}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
           });
@@ -169,13 +170,14 @@ const Home: NextPage = () => {
           }
 
           const resp = await fetchResponse.json();
-
           const json = Jwt.decode(resp.message) as { [key: string]: string };
+          console.log(json);
           signIn("credentials", {
               email: json['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'],
               name: json['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
               role: json['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
               permission: json['permission'],
+              saId : json['saId'],
               redirect: false,
           }).then(() => {
               router.push('/');

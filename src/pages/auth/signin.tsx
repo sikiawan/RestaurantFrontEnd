@@ -52,6 +52,8 @@ const SignIn: NextPage = (props): JSX.Element => {
         name: json['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
         role: json['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
         permission: json['permission'],
+        id : json['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'],
+        saId: json['saId'],
         redirect: false,
       }).then(() => {
         router.push('/');

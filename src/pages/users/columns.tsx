@@ -9,14 +9,7 @@ export type UsersHome = {
   isActive: string
   tenantId : string
 }
-export type Tenants = {
-  id: string
-  name: string
-}
-export type Roles = {
-  id: string
-  name: string
-}
+
  export const columns = [
   {name: "NAME", uid: "userName", sortable: true},
   {name: "ROLE", uid: "role", sortable: true},

@@ -26,8 +26,10 @@ import { PlusIcon, VerticalDotsIcon, ChevronDownIcon, SearchIcon, EditIcon, Dele
 import { capitalize } from "@/utils/utils";
 import { ClientPreference, columns, renderCell } from '@/pages/clientpreference/columns'
 import { useSession } from 'next-auth/react'
+import { useTranslation } from "next-i18next";
+import { useRouter } from "next/router";
 
-const INITIAL_VISIBLE_COLUMNS = ["name", "address", "tenantId", "cellNo", "actions"];
+const INITIAL_VISIBLE_COLUMNS = ["name", "address", "tenantName", "cellNo", "actions"];
 export default function ClientPreferenceTable({
   clientPreference,
   pages,
@@ -37,7 +39,7 @@ export default function ClientPreferenceTable({
   handleAdd,
   getDataWithParams,
 }: {
-  clientPreference: ClientPreference[];
+  clientPreference: any[];
   pages: number;
   totalRecords: number;
   handleEdit: (id: string, page:number, rowsPerPage:number, search:string) => void;
@@ -63,6 +65,7 @@ export default function ClientPreferenceTable({
     const permissionsString = session?.user.permissions;
   
     if (permissionsString) {
+      debugger;
       const permissionsArray = permissionsString.split(',');
       setCanEdit(permissionsArray.includes('Permissions.CP.Edit'));
       setCanDelete(permissionsArray.includes('Permissions.CP.Delete'))
@@ -74,11 +77,11 @@ export default function ClientPreferenceTable({
     if (visibleColumns === "all") return columns;
     return columns.filter((column) => Array.from(visibleColumns).includes(column.uid));
   }, [visibleColumns]);
-
+  const {locale} = useRouter();
   React.useEffect(() => {
     getDataWithParams(page, rowsPerPage, filterValue);
     setEditDeletePermission();
-  }, [page, rowsPerPage, filterValue]);
+  }, [page, rowsPerPage, filterValue, locale]);
 
   const sortedItems = React.useMemo(() => {
     return [...clientPreference].sort((a: ClientPreference, b: ClientPreference) => {
@@ -124,7 +127,8 @@ export default function ClientPreferenceTable({
   const onDelete = React.useCallback((id:string) => {
     handleDelete(id, page, rowsPerPage, filterValue)
   }, [page, rowsPerPage, filterValue]);
-  
+  const { t: dashboardT } = useTranslation('dashboard');
+  const { t: commonT } = useTranslation('common');
 
   const topContent = React.useMemo(() => {
     return (
@@ -133,7 +137,7 @@ export default function ClientPreferenceTable({
           <Input
             isClearable
             className="h-12 w-full sm:max-w-[44%]"
-            placeholder="Search by name..."
+            placeholder={commonT('search')}
             startContent={<SearchIcon />}
             value={filterValue}
             onClear={onClear}
@@ -143,7 +147,7 @@ export default function ClientPreferenceTable({
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
                 <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
-                  Columns
+                  {commonT('columns')}
                 </Button>
               </DropdownTrigger>
               <DropdownMenu
@@ -162,14 +166,14 @@ export default function ClientPreferenceTable({
               </DropdownMenu>
             </Dropdown>
             <Button onClick={onAdd} color="primary" endContent={<PlusIcon />}>
-              Add New
+            {commonT('addNew')}
             </Button>
           </div>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-default-400 text-small">Total {totalRecords} clientPreferences</span>
+          <span className="text-default-400 text-small"> { commonT('total')+ ' ' + totalRecords + ' '+ commonT('records')}</span>
           <label className="flex items-center text-default-400 text-small">
-            Rows per page:
+            {commonT('recordsPerPage') + ':'}
             <select
               className="bg-transparent outline-none text-default-400 text-small"
               onChange={onRowsPerPageChange}
@@ -182,7 +186,7 @@ export default function ClientPreferenceTable({
         </div>
       </div>
     );
-  }, [filterValue, visibleColumns, onSearchChange, onRowsPerPageChange, onAdd, totalRecords]);
+  }, [filterValue, visibleColumns, onSearchChange, onRowsPerPageChange, onAdd, totalRecords, commonT]);
 
   const bottomContent = React.useMemo(() => {
     return (
@@ -198,16 +202,15 @@ export default function ClientPreferenceTable({
         />
         <div className="hidden sm:flex w-[30%] justify-end gap-2">
           <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onPreviousPage}>
-            First
+          {commonT('first')}
           </Button>
           <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onNextPage}>
-            Last
+            {commonT('last')}
           </Button>
         </div>
       </div>
     );
   }, [onNextPage, onPreviousPage, getDataWithParams, page, pages, rowsPerPage]);
-
   return (
     <Table
       aria-label="Example table with custom cells, pagination and sorting"
@@ -216,7 +219,7 @@ export default function ClientPreferenceTable({
       bottomContentPlacement="outside"
       sortDescriptor={sortDescriptor}
       topContent={topContent}
-      topContentPlacement="outside"
+      topContentPlacement="inside"
       onSortChange={setSortDescriptor}
     >
       <TableHeader columns={headerColumns}>

@@ -12,9 +12,12 @@ import toast from "react-hot-toast";
 import { debug } from "console";
 import { LangDropDown } from "@/constants/constants";
 import { useRouter } from "next/router";
+import Jwt from 'jsonwebtoken';
+
 //import { debug } from "console";
 
 export default function App() {
+  const {locale }= useRouter();
   const route = useRouter();
   const { resolvedTheme, theme, setTheme } = useTheme();
   const { data: session } = useSession()
@@ -57,7 +60,7 @@ export default function App() {
   interface MenuItem {
     id: number;
     name: string;
-    arabicName: string;
+    localizedName: string;
     href: string;
     permission?: string;
     parentId?: number;
@@ -88,6 +91,36 @@ export default function App() {
       getLogo(userEmail);
     }
   }, [session]);
+  const handleLogin = async () => {
+    if (window.confirm('Are you sure to Loing from this user !') === true) {
+      try {
+          debugger;
+          const fetchResponse = await fetch(`https://localhost:7160/api/Auth/AuthenticateById?id=${session?.user.saId}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+          });
+
+          if (!fetchResponse.ok) {
+              throw new Error(`Request failed with status: ${fetchResponse.status}`);
+          }
+
+          const resp = await fetchResponse.json();
+          const json = Jwt.decode(resp.message) as { [key: string]: string };
+          console.log(json);
+          signIn("credentials", {
+              email: json['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'],
+              name: json['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
+              role: json['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
+              permission: json['permission'],
+              saId : json['saId'],
+              redirect: false,
+          }).then(() => {
+              route.push('/');
+          });
+      } catch (error) {
+          console.error('Fetch error:');
+      }
+    }}
   // var menuItems : MenuItem[] = [
   //   {
   //     name: "Home",
@@ -197,17 +230,17 @@ export default function App() {
                           radius="sm"
                           variant="light"
                         >
-                          {(() => {
+                          {/* {(() => {
                             switch (route.locale) {
                               case 'en':
                                 return item.name;
                               case 'ar':
                                 return item.arabicName;
-                              // Add more cases for other locales as needed
                               default:
-                                return item.name; // Fallback to the default
+                                return item.name;
                             }
-                          })()}
+                          })()} */}
+                          {locale === 'en' ? item.name : item.localizedName}
                         </Button>
                       </DropdownTrigger>
                     </NavbarItem>
@@ -225,17 +258,7 @@ export default function App() {
                             openNewTab={false}
                             className={'font-primary w-full flex-1 text-[16px] font-semibold'}
                           >
-                            {(() => {
-                            switch (route.locale) {
-                              case 'en':
-                                return subItem.name;
-                              case 'ar':
-                                return subItem.arabicName;
-                              // Add more cases for other locales as needed
-                              default:
-                                return subItem.name; // Fallback to the default
-                            }
-                          })()}
+                            {locale === 'en' ? subItem.name : subItem.localizedName}
                           </UnstyledLink>
                         </DropdownItem>
                       ))}
@@ -248,7 +271,7 @@ export default function App() {
                       openNewTab={false}
                       className={'font-primary flex-1 text-[16px] font-semibold'}
                     >
-                      {item.name}
+                      {locale === 'en' ? item.name : item.localizedName}
                     </UnstyledLink>
                   </NavbarItem>
                 )}
@@ -265,17 +288,23 @@ export default function App() {
               {theme === "light" ? <MoonIcon /> : <SunIcon />}
             </button>
             <div>
-              <select value={route.locale} onChange={(e) => {
-              route.push('', undefined, {
-              locale: e.target.value
-              })
-               }}>
+              <select
+                value={locale}
+                onChange={(e) => {
+                  route.push('', undefined, {
+                    locale: e.target.value,
+                  }).then(() => {
+                    //route.reload();
+                  });
+                }}
+              >
                 {LangDropDown.map((op) => (
                   <option value={op.value} key={op.id}>
                     {op.label}
                   </option>
                 ))}
               </select>
+
             </div>
           </NavbarContent>
           {session && (
@@ -293,7 +322,7 @@ export default function App() {
                       src='https://localhost:7160/Image/mine234629318.jpg'
                     />
                   </DropdownTrigger>
-                  <DropdownMenu aria-label="Profile Actions" variant="flat">
+                  <DropdownMenu disabledKeys={["hidden"]} aria-label="Profile Actions" variant="flat">
                     <DropdownItem key="profile" className="h-14 gap-2">
                       <p className="font-semibold">Signed in as</p>
                       <p className="font-semibold">{session?.user?.userEmail}</p>
@@ -302,6 +331,11 @@ export default function App() {
                     <DropdownItem onClick={() => signOut()} key="logout" color="danger">
                       Log Out
                     </DropdownItem>
+                    {session.user.saId !== "0" ? (
+                      <DropdownItem onClick={() => handleLogin()} key="logout" color="success">
+                        Impersonate
+                      </DropdownItem>
+                    ) : <DropdownItem key="hidden"></DropdownItem>}
                   </DropdownMenu>
                 </Dropdown>
               </NavbarContent>
@@ -321,7 +355,7 @@ export default function App() {
                           radius="sm"
                           variant="light"
                         >
-                          {item.name}
+                          {locale === 'en' ? item.name : item.localizedName}
                         </Button>
                       </DropdownTrigger>
                     </NavbarMenuItem>
@@ -340,7 +374,7 @@ export default function App() {
                             className={'font-primary w-full flex-1 text-[16px] font-semibold'}
                             onClick={() => { setIsMenuOpen(false) }}
                           >
-                            {subItem.name}
+                            {locale === 'en' ? subItem.name : subItem.localizedName}
                           </UnstyledLink>
                         </DropdownItem>
                       ))}
@@ -353,7 +387,7 @@ export default function App() {
                       openNewTab={false}
                       className={'font-primary flex-1 text-[16px] font-semibold'}
                     >
-                      {item.name}
+                      {locale === 'en' ? item.name : item.localizedName}
                     </UnstyledLink>
                   </NavbarMenuItem>
                 )}

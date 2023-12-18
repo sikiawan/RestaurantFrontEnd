@@ -5,13 +5,13 @@ import { DeleteIcon, EditIcon, EyeIcon } from '@/components/icons/icons'
 export type ClientPreference = {
   id: string
   name: string
-  tenanatId: string
+  tenantName: string
   address : string
   cellNO : string
 }
 export const columns = [
   {name: "NAME", uid: "name", sortable: true},
-  {name: "TENANT", uid: "tenantId", sortable: true},
+  {name: "TENANT", uid: "tenantName", sortable: true},
   {name: "ADDRESS", uid: "address", sortable: true},
   {name: "CELLNO", uid: "cellNo", sortable: true},
   {name: "ACTIONS", uid: "actions"},

@@ -25,8 +25,8 @@ import { PlusIcon, VerticalDotsIcon, ChevronDownIcon, SearchIcon, EditIcon, Dele
 
 import { capitalize } from "@/utils/utils";
 import { Restaurant, columns, renderCell } from '@/pages/restaurant/columns'
-import { debug } from "console";
-const INITIAL_VISIBLE_COLUMNS = ["name", "isActive", "actions"];
+import { useTranslation } from "next-i18next";
+import { useRouter } from "next/router";const INITIAL_VISIBLE_COLUMNS = ["name", "isActive", "actions"];
 export default function RestaurantTable({
   restaurant,
   pages,
@@ -59,6 +59,7 @@ export default function RestaurantTable({
     return columns.filter((column) => Array.from(visibleColumns).includes(column.uid));
   }, [visibleColumns]);
 
+  const {locale} = useRouter();
   React.useEffect(() => {
     getDataWithParams(page, rowsPerPage, filterValue);
   }, [page, rowsPerPage, filterValue]);
@@ -107,7 +108,8 @@ export default function RestaurantTable({
   const onDelete = React.useCallback((id:string) => {
     handleDelete(id, page, rowsPerPage, filterValue)
   }, [page, rowsPerPage, filterValue]);
-  
+  const { t: dashboardT } = useTranslation('dashboard');
+  const { t: commonT } = useTranslation('common');
 
   const topContent = React.useMemo(() => {
     return (
@@ -116,7 +118,7 @@ export default function RestaurantTable({
           <Input
             isClearable
             className="h-12 w-full sm:max-w-[44%]"
-            placeholder="Search by name..."
+            placeholder={commonT('search')}
             startContent={<SearchIcon />}
             value={filterValue}
             onClear={onClear}
@@ -126,7 +128,7 @@ export default function RestaurantTable({
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
                 <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
-                  Columns
+                  {commonT('columns')}
                 </Button>
               </DropdownTrigger>
               <DropdownMenu
@@ -139,20 +141,20 @@ export default function RestaurantTable({
               >
                 {columns.map((column) => (
                   <DropdownItem key={column.uid} className="capitalize">
-                    {capitalize(column.name)}
+                    {locale === 'en' ? capitalize(column.name) : column.localizedName}
                   </DropdownItem>
                 ))}
               </DropdownMenu>
             </Dropdown>
             <Button onClick={onAdd} color="primary" endContent={<PlusIcon />}>
-              Add New
+              {commonT('addNew')}
             </Button>
           </div>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-default-400 text-small">Total {totalRecords} clientPreferences</span>
+          <span className="text-default-400 text-small">{ commonT('total')+ ' '+ totalRecords + ' '+ commonT('records') }</span>
           <label className="flex items-center text-default-400 text-small">
-            Rows per page:
+            {commonT('recordsPerPage') + ':'}
             <select
               className="bg-transparent outline-none text-default-400 text-small"
               onChange={onRowsPerPageChange}
@@ -165,7 +167,7 @@ export default function RestaurantTable({
         </div>
       </div>
     );
-  }, [filterValue, visibleColumns, onSearchChange, onRowsPerPageChange, onAdd, totalRecords]);
+  }, [filterValue, visibleColumns, onSearchChange, onRowsPerPageChange, onAdd, totalRecords, commonT]);
 
   const bottomContent = React.useMemo(() => {
     return (
@@ -181,16 +183,31 @@ export default function RestaurantTable({
         />
         <div className="hidden sm:flex w-[30%] justify-end gap-2">
           <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onPreviousPage}>
-            First
+            {commonT('first')}
           </Button>
           <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onNextPage}>
-            Last
+            {commonT('last')}
           </Button>
         </div>
       </div>
     );
-  }, [onNextPage, onPreviousPage, getDataWithParams, page, pages, rowsPerPage]);
+  }, [onNextPage, onPreviousPage, page, pages, rowsPerPage, commonT]);
 
+  const tableHeader = React.useMemo(() => {
+    return (
+      <TableHeader key={locale} columns={headerColumns}>
+        {(column) => (
+          <TableColumn
+            key={column.uid}
+            align={column.uid === "actions" ? "center" : "start"}
+            allowsSorting={column.sortable}
+          >
+            {locale === 'en' ? column.name : column.localizedName}
+          </TableColumn>
+        )}
+      </TableHeader>
+    );
+  }, [headerColumns, commonT, locale]);
   return (
     <Table
       aria-label="Example table with custom cells, pagination and sorting"
@@ -202,22 +219,23 @@ export default function RestaurantTable({
       topContentPlacement="outside"
       onSortChange={setSortDescriptor}
     >
-      <TableHeader columns={headerColumns}>
+      {/* <TableHeader columns={headerColumns}>
         {(column) => (
           <TableColumn
             key={column.uid}
             align={column.uid === "actions" ? "center" : "start"}
             allowsSorting={column.sortable}
           >
-            {column.name}
+            {locale === 'en' ? column.name: column.localizedName}
           </TableColumn>
         )}
-      </TableHeader>
+      </TableHeader> */}
+      {tableHeader}
       <TableBody emptyContent={"No clientPreference found"} items={sortedItems}>
-        {(clientPreference) => (
-          <TableRow key={clientPreference.id}>
+        {(item) => (
+          <TableRow key={item.id}>
             {(columnKey) => (
-              <TableCell>{renderCell(clientPreference, columnKey, onEdit, onDelete)}</TableCell>
+              <TableCell>{renderCell(item, columnKey, locale, commonT, onEdit, onDelete)}</TableCell>
             )}
           </TableRow>
         )}

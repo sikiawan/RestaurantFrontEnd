@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { ClientPreference } from './columns';
 import ClientPreferenceTable from '@/components/tables/ClientPreferenceTable';
-import { Button, Checkbox, Input, Link, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@nextui-org/react';
+import { Button, Checkbox, Input, Link, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Select, SelectItem, useDisclosure } from '@nextui-org/react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { debug } from 'console';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import { Tenants } from '@/types/types';
 const ClientPreferences = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
@@ -15,6 +16,8 @@ const ClientPreferences = () => {
 
     const [id, setId] = useState<string>('');
     const [data, setData] = useState<ClientPreference[]>([]);
+    const [tenants, setTenants] = useState<Tenants[]>([]);
+
     const [pages, setPages] = useState(0);
     const [totalRecords, setTotalRecords] = useState(0);
     const [page, setPage] = useState(1);
@@ -22,6 +25,11 @@ const ClientPreferences = () => {
     const [search, setSearch] = useState('');
     const [image, setImage] = useState<File | null>(null);
 
+    const [errorTenant, setErrorTenant] = useState('');
+
+    useEffect(() => {
+        getTenants();
+      }, []);
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -91,7 +99,15 @@ const ClientPreferences = () => {
                 console.error(error);
             });
     };
-    
+    const getTenants = () => {
+        axios.get("https://localhost:7160/api/Restaurant/GetAll")
+          .then((response) => {
+            setTenants(response.data);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      };
     const handleSave = (onClose: () => void) => {
         debugger;
         const url = 'https://localhost:7160/api/ClientPreference';
@@ -146,6 +162,15 @@ const ClientPreferences = () => {
                 console.error(error);
             });
     };
+    const onTenantChange = ((id:number) => {
+        console.log(id);
+        if(isNaN(id)){
+          setTenantId('');
+        }
+        else{
+          setTenantId(id.toString())
+        }
+      });
     return (
         <>
             <section className='flex items-center justify-center my-2'>
@@ -180,13 +205,18 @@ const ClientPreferences = () => {
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
                                         />
-                                        <Input
-                                            label="Restaurant"
-                                            placeholder="Enter restaurant"
-                                            variant="bordered"
+                                        <Select
+                                            label="Select tenant"
+                                            onChange={(e) => onTenantChange(parseInt(e.target.value))}
                                             value={tenantId}
-                                            onChange={(e) => setTenantId(e.target.value)}
-                                        />
+                                            errorMessage={errorTenant}
+                                        >
+                                            {tenants.map((tenant) => (
+                                                <SelectItem key={tenant.id} value={tenant.id}>
+                                                    {tenant.name}
+                                                </SelectItem>
+                                            ))}
+                                        </Select>
                                         <Input
                                             //   endContent={
                                             //     <LockIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
@@ -228,3 +258,14 @@ const ClientPreferences = () => {
 };
 
 export default ClientPreferences;
+export async function getStaticProps({ locale }: { locale: string }) {
+    return {
+      props: {
+        ...(await serverSideTranslations(locale, [
+          'dashboard',
+          'common'
+        ])),
+        // Will be passed to the page component as props
+      },
+    };
+  }

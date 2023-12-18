@@ -4,7 +4,7 @@ import RestaurantTable from '@/components/tables/RestaurantTable';
 import { Button, Checkbox, Input, Link, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@nextui-org/react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { debug } from 'console';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { EyeFilledIcon, EyeSlashFilledIcon } from '@/components/icons/icons';
 
 const index = () => {
@@ -258,3 +258,14 @@ const index = () => {
 }
 
 export default index
+export async function getStaticProps({ locale }: { locale: string }) {
+    return {
+      props: {
+        ...(await serverSideTranslations(locale, [
+          'dashboard',
+          'common'
+        ])),
+        // Will be passed to the page component as props
+      },
+    };
+  }

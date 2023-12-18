@@ -1,25 +1,28 @@
 import { Tooltip, Chip, ChipProps } from '@nextui-org/react'
 import { DeleteIcon, EditIcon, EyeIcon } from '@/components/icons/icons'
-
+import { useRouter } from 'next/router'
 
 export type Restaurant = {
   id: string
   name: string
+  localizedName : string
   isActive: string
 }
 export const columns = [
-  {name: "NAME", uid: "name", sortable: true},
-  {name: "ISACTIVE", uid: "isActive", sortable: true},
-  {name: "ACTIONS", uid: "actions"},
+  {name: "NAME", localizedName : "نام", uid: "name", sortable: true},
+  {name: "ISACTIVE", localizedName : "از ایکٹیو", uid: "isActive", sortable: true},
+  {name: "ACTIONS", localizedName : "ایکشن", uid: "actions"},
 ];
 const statusColorMap: Record<string, ChipProps["color"]> = {
   true: "success",
   false: "danger",
 };
-export const renderCell = (restaurant: Restaurant, columnKey: React.Key, onEdit: (id: string) => void, onDelete: (id: string) => void) => {
+export const renderCell = (restaurant: Restaurant, columnKey: React.Key, locale: any, commonT : any, onEdit: (id: string) => void, onDelete: (id: string) => void) => {
   const cellValue = restaurant[columnKey as keyof Restaurant]
 
   switch (columnKey) {
+    case 'name':
+      return (locale === 'en' ? restaurant.name : restaurant.localizedName);
     case 'fordate':
       return <span>{new Date(cellValue).toLocaleDateString()}</span>
     case "isActive":
@@ -31,12 +34,12 @@ export const renderCell = (restaurant: Restaurant, columnKey: React.Key, onEdit:
     case 'actions':
       return (
         <div className='relative flex items-center gap-4'>
-          <Tooltip content='Edit user'>
+          <Tooltip content={commonT('edit')}>
             <span className='cursor-pointer text-lg text-default-400 active:opacity-50' onClick={() => onEdit(restaurant.id)}>
               <EditIcon />
             </span>
           </Tooltip>
-          <Tooltip color='danger' content='Delete user'>
+          <Tooltip color='danger' content={commonT('delete')}>
             <span className='cursor-pointer text-lg text-danger active:opacity-50' onClick={() => onDelete(restaurant.id)}>
               <DeleteIcon />
             </span>

@@ -7,6 +7,6 @@ export const LangDropDown =[
     {
         id:2,
         value: 'ar',
-        label: 'Arabic',
+        label: 'عربی',
     }
 ]
