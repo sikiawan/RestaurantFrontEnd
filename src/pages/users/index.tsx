@@ -53,17 +53,18 @@ const Home: NextPage = () => {
     }
     axios.post(url, data)
       .then((response) => {
+        debugger;
         console.log('api called');
-        setData(response.data.message.users);
-        setPages(response.data.message.totalPages);
-        setTotalRecords(response.data.message.totalRecords);
+        setData(response.data.response.users);
+        setPages(response.data.response.totalPages);
+        setTotalRecords(response.data.response.totalRecords);
       })
       .catch((error) => {
         console.error(error);
       });
   };
   const getTenants = () => {
-    axios.get("https://localhost:7160/api/Restaurant/GetAll")
+    axios.get("https://localhost:7160/api/Restaurant/GetAllRestaurants")
       .then((response) => {
         setTenants(response.data);
       })

@@ -8,5 +8,8 @@
     "last": "Last",
     "total":"Total",
     "records":"Rocords",
-    "recordsPerPage": "Records per page."
+    "recordsPerPage": "Records per page.",
+    "name": "Name",
+    "action": "Action",
+    "isActive": "Is Active"
 }

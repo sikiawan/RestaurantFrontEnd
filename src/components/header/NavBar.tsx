@@ -51,7 +51,7 @@ export default function App() {
         console.log('get logo');
 
         console.log(response);
-        setLogo(response.data.imageSource);
+        setLogo(response.data);
       })
       .catch((error) => {
         console.error(error);

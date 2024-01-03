@@ -6,12 +6,13 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { EyeFilledIcon, EyeSlashFilledIcon } from '@/components/icons/icons';
-
+import { API_CONFIG } from '@/constants/api-config';
 const index = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [isVisible, setIsVisible] = React.useState(false);
 
     const [name, setName] = useState<string>('');
+    const [localizedName, setLocalizedName] = useState<string>('');
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [confirmPassword, setConfirmPassword] = useState<string>('');
@@ -48,7 +49,7 @@ const index = () => {
     };
     const getData = (page = 1, pageSize = 5, search = '') => {
         console.log('api called out')
-        axios.get(`https://localhost:7160/api/Restaurant?page=${page}&pageSize=${pageSize}&search=${search}`)
+        axios.get(`${API_CONFIG.BASE_URL}api/Restaurant?page=${page}&pageSize=${pageSize}&search=${search}`)
             .then((response) => {
                 console.log('api called')
                 setData(response.data.restaurants);
@@ -61,11 +62,12 @@ const index = () => {
             });
     };
     const handleSave = (onClose: () => void) => {
-        const url = 'https://localhost:7160/api/Restaurant';
+        const url = `${API_CONFIG.BASE_URL}api/Restaurant`;
         let data = {};
         if (id === '') {
             data = {
                 name,
+                localizedName,
                 email,
                 password,
                 confirmPassword,
@@ -77,6 +79,7 @@ const index = () => {
                 id: parseInt(id, 10),
                 //id: editId,
                 name: name,
+                localizedName: localizedName,
                 isActive: isActive,
             }
         }
@@ -94,7 +97,7 @@ const index = () => {
     };
     const handleEdit = (id: string, page: number, rowsPerPage: number, search: string) => {
         onOpen();
-        axios.get(`https://localhost:7160/api/Restaurant/GetById?id=${id}`)
+        axios.get(`${API_CONFIG.BASE_URL}api/Restaurant/GetById?id=${id}`)
             .then((result) => {
                 setName(result.data.name);
                 setIsActive(result.data.isActive);
@@ -116,7 +119,7 @@ const index = () => {
     };
     const handleDelete = (id: string, page: number, rowsPerPage: number, search: string) => {
         if (window.confirm('Are you sure to Delete this record !') === true) {
-            axios.delete(`https://localhost:7160/api/ClientPreference?id=${id}`)
+            axios.delete(`${API_CONFIG.BASE_URL}api/ClientPreference?id=${id}`)
                 .then(() => {
                     toast.success('Record has been deleted.');
                     getData(page, rowsPerPage, search);
@@ -180,6 +183,15 @@ const index = () => {
                                             value={name}
                                             autoComplete="off"
                                             onChange={(e) => setName(e.target.value)}
+                                        />
+                                        <Input
+                                            autoFocus
+                                            label="Localized Name"
+                                            placeholder="Enter localized name"
+                                            variant="bordered"
+                                            value={localizedName}
+                                            autoComplete="off"
+                                            onChange={(e) => setLocalizedName(e.target.value)}
                                         />
                                         {id === '' && (
                                             <>

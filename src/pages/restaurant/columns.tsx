@@ -8,11 +8,7 @@ export type Restaurant = {
   localizedName : string
   isActive: string
 }
-export const columns = [
-  {name: "NAME", localizedName : "نام", uid: "name", sortable: true},
-  {name: "ISACTIVE", localizedName : "از ایکٹیو", uid: "isActive", sortable: true},
-  {name: "ACTIONS", localizedName : "ایکشن", uid: "actions"},
-];
+
 const statusColorMap: Record<string, ChipProps["color"]> = {
   true: "success",
   false: "danger",

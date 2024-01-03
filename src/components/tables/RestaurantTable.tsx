@@ -24,7 +24,7 @@ import {
 import { PlusIcon, VerticalDotsIcon, ChevronDownIcon, SearchIcon, EditIcon, DeleteIcon, EyeIcon } from "../icons/icons";
 
 import { capitalize } from "@/utils/utils";
-import { Restaurant, columns, renderCell } from '@/pages/restaurant/columns'
+import { Restaurant, renderCell } from '@/pages/restaurant/columns'
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";const INITIAL_VISIBLE_COLUMNS = ["name", "isActive", "actions"];
 export default function RestaurantTable({
@@ -54,15 +54,22 @@ export default function RestaurantTable({
     direction: "ascending",
   });
   const [page, setPage] = React.useState(1);
+  const { t: dashboardT } = useTranslation('dashboard');
+  const { t: commonT } = useTranslation('common');
+  const columns = [
+    {name: commonT('name'), uid: "name", sortable: true},
+    {name: commonT('isActive'), uid: "isActive", sortable: true},
+    {name: commonT('action'), uid: "actions"},
+  ];
   const headerColumns = React.useMemo(() => {
     if (visibleColumns === "all") return columns;
     return columns.filter((column) => Array.from(visibleColumns).includes(column.uid));
-  }, [visibleColumns]);
+  }, [visibleColumns, commonT]);
 
   const {locale} = useRouter();
   React.useEffect(() => {
     getDataWithParams(page, rowsPerPage, filterValue);
-  }, [page, rowsPerPage, filterValue]);
+  }, [page, rowsPerPage, filterValue, locale]);
 
   const sortedItems = React.useMemo(() => {
     return [...restaurant].sort((a: Restaurant, b: Restaurant) => {
@@ -108,8 +115,7 @@ export default function RestaurantTable({
   const onDelete = React.useCallback((id:string) => {
     handleDelete(id, page, rowsPerPage, filterValue)
   }, [page, rowsPerPage, filterValue]);
-  const { t: dashboardT } = useTranslation('dashboard');
-  const { t: commonT } = useTranslation('common');
+  
 
   const topContent = React.useMemo(() => {
     return (
@@ -141,7 +147,7 @@ export default function RestaurantTable({
               >
                 {columns.map((column) => (
                   <DropdownItem key={column.uid} className="capitalize">
-                    {locale === 'en' ? capitalize(column.name) : column.localizedName}
+                    {column.name}
                   </DropdownItem>
                 ))}
               </DropdownMenu>
@@ -192,7 +198,7 @@ export default function RestaurantTable({
       </div>
     );
   }, [onNextPage, onPreviousPage, page, pages, rowsPerPage, commonT]);
-
+ 
   const tableHeader = React.useMemo(() => {
     return (
       <TableHeader key={locale} columns={headerColumns}>
@@ -202,7 +208,7 @@ export default function RestaurantTable({
             align={column.uid === "actions" ? "center" : "start"}
             allowsSorting={column.sortable}
           >
-            {locale === 'en' ? column.name : column.localizedName}
+            {column.name}
           </TableColumn>
         )}
       </TableHeader>
@@ -219,18 +225,17 @@ export default function RestaurantTable({
       topContentPlacement="outside"
       onSortChange={setSortDescriptor}
     >
-      {/* <TableHeader columns={headerColumns}>
+      <TableHeader columns={headerColumns}>
         {(column) => (
           <TableColumn
             key={column.uid}
             align={column.uid === "actions" ? "center" : "start"}
             allowsSorting={column.sortable}
           >
-            {locale === 'en' ? column.name: column.localizedName}
+            {column.name}
           </TableColumn>
         )}
-      </TableHeader> */}
-      {tableHeader}
+      </TableHeader>
       <TableBody emptyContent={"No clientPreference found"} items={sortedItems}>
         {(item) => (
           <TableRow key={item.id}>

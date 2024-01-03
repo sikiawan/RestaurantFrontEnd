@@ -8,5 +8,8 @@
     "last": "آخری پیج",
     "total":"کل",
     "records":"ریکارڈز",
-    "recordsPerPage": "صفحہ پر ریکارڈز"
+    "recordsPerPage": "صفحہ پر ریکارڈز",
+    "name": "نام",
+    "action": "ایکشن",
+    "isActive": "از ایکٹیو"
 }

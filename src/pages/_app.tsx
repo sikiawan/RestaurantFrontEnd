@@ -14,7 +14,7 @@ function App({ Component, pageProps }: AppProps) {
     <SessionProvider session={pageProps.session}>
     <NextUIProvider>
   <ThemeProvider defaultTheme='system' attribute='class'>
-    <NavBar />
+    {/* <NavBar /> */}
    <Component {...pageProps} />
    <Toaster />
   </ThemeProvider>

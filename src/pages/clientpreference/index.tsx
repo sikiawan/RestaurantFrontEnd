@@ -100,7 +100,7 @@ const ClientPreferences = () => {
             });
     };
     const getTenants = () => {
-        axios.get("https://localhost:7160/api/Restaurant/GetAll")
+        axios.get("https://localhost:7160/api/Restaurant/GetAllRestaurants")
           .then((response) => {
             setTenants(response.data);
           })
@@ -111,15 +111,15 @@ const ClientPreferences = () => {
     const handleSave = (onClose: () => void) => {
         debugger;
         const url = 'https://localhost:7160/api/ClientPreference';
-        const formData = new FormData();
-        formData.append('name', name);
-        formData.append('tenantId', tenantId);
-        formData.append('address', address);
-        formData.append('cellNo', cellNo);
+        // const formData = new FormData();
+        // formData.append('name', name);
+        // formData.append('tenantId', tenantId);
+        // formData.append('address', address);
+        // formData.append('cellNo', cellNo);
 
-        if (image) {
-            formData.append('image', image);
-        }
+        // if (image) {
+        //     formData.append('image', image);
+        // }
 
         let config = {
             headers: {
